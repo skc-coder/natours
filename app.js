@@ -8,9 +8,13 @@ const morgan = require('morgan'); // for logging
 const app = express();
 
 // Middlewares
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'DEVELOPMENT') {
+  app.use(morgan('dev'));
+}
 app.use(express.json());
+app.use(express.static(`${__dirname}/public`));
 
+// router setup
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
