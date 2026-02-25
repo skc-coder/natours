@@ -3,15 +3,20 @@
 // initialize
 const express = require('express');
 const fs = require('fs');
-
+const { createSecureServer } = require('http2');
+const morgan = require('morgan'); // for logging
 const app = express();
+
+// Middlewares
+app.use(morgan('dev'));
+app.use(express.json());
+
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours.json`),
 );
-
-// adding middleware
-app.use(express.json());
-
+const users = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/users.json`),
+);
 // routing functions
 const getAllTours = (req, res) => {
   res.status(200).json({ status: 'succsess', data: { tours } });
@@ -62,16 +67,36 @@ const getATour = (req, res) => {
   res.status(200).json({ status: 'success', data: { tour: matchedTour } });
 };
 
+const getAllUsers = (req, res) => {
+  res.status(200).json({ status: 'success', data: { users } });
+};
+const getAUser = (req, res) => {
+  res.status(400).json({ status: 'fail', data: 'No user!' });
+};
+const deleteUser = (req, res) => {
+  res.status(400).json({ status: 'fail', data: 'Not implemented!' });
+};
+const updateUser = (req, res) => {
+  res.status(400).json({ status: 'fail', data: 'Not implemented!' });
+};
+const createUser = (req, res) => {
+  res.status(400).json({ status: 'fail', data: 'Not implemented!' });
+};
+
 // handling routes
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
+const tourRouter = express.Router();
+const userRouter = express.Router();
 
-app
-  .route('/api/v1/tours/:id')
-  .get(getATour)
-  .delete(deleteTour)
-  .patch(updateTour);
+tourRouter.route('/').get(getAllTours).post(createTour);
 
-// server listening
+tourRouter.route('/:id').get(getATour).delete(deleteTour).patch(updateTour);
+
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getAUser).delete(deleteUser).patch(updateUser);
+
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+// server start
 const port = 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
